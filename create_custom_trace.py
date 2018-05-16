@@ -47,7 +47,7 @@ def create_timestamps(max_pps, curve_type, runtime=TEST_DURATION_SEC):
     if max_pps == 0:
         print "You set input parameter max_pps to", max_pps, ". This is invalid. Exiting..."
         sys.exit()
-    if curve_type not in ["constant", "bursts", "linear", "quadratic"]:
+    if curve_type not in ["constant", "bursts", "linear", "quadratic", "sine"]:
         print "You set input parameter curve_type to", curve_type, ". This is invalid. Exiting..."
         sys.exit()
 
@@ -102,6 +102,23 @@ def create_timestamps(max_pps, curve_type, runtime=TEST_DURATION_SEC):
             for timestamp in range(0, v):  # Will not execute for timestamp equal to v
                 list_of_timestamps.append(start_time + k + (interpacket_gap * timestamp))
 
+    elif curve_type == "sine":
+        #packets = [int(ceil((sin(radians(i)) + 1) * 50)) for i in [0, 45, 90, 135, 180, 225, 270, 315]]
+        packets_one_period = [50, 86, 100, 86, 50, 15, 0, 15]
+
+        periods = runtime / len(packets_one_period)  # integer, so flooring float
+        packets = packets_one_period * periods
+
+        for k, v in enumerate(packets):
+
+            if v == 0:
+                continue
+            else:
+                interpacket_gap = 1.0 / v
+
+            for timestamp in range(0, v):  # Will not execute for timestamp equal to v
+                list_of_timestamps.append(start_time + k + (interpacket_gap * timestamp))
+
     return list_of_timestamps
 
 
@@ -115,4 +132,4 @@ def export_trace(packets_list, filename="trace_"+str(int(time()))+".pcap"):
 
 
 if __name__ == "__main__":
-    export_trace(create_pkts("10.0.0.1", "10.0.0.2", 100, "bursts"))
+    export_trace(create_pkts("10.0.0.1", "10.0.0.2", 100, "sine"))
