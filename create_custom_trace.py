@@ -132,4 +132,18 @@ def export_trace(packets_list, filename="trace_"+str(int(time()))+".pcap"):
 
 
 if __name__ == "__main__":
-    export_trace(create_pkts("10.0.0.1", "10.0.0.2", 100, "sine"))
+    print "Running script", sys.argv[0]
+    print "User provided", (len(sys.argv)-1), "command-line arguments:"
+
+    if len(sys.argv) != 5:
+        print str(sys.argv[1:])
+        print "These arguments are invalid. Exiting..."
+        sys.exit()
+
+    user_input = {'src_ip': sys.argv[1], 'dst_ip': sys.argv[2], 'max_pps': int(sys.argv[3]), 'curve_type': sys.argv[4]}
+    print "* Source IP:", user_input['src_ip']
+    print "* Destination IP:", user_input['dst_ip']
+    print "* Maximum Throughput (pps):", user_input['max_pps']
+    print "* Curve:", user_input['curve_type']
+
+    export_trace(create_pkts(**user_input), "trace_"+str(user_input['curve_type'])+"_"+str(int(time()))+".pcap")
