@@ -1,13 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from curve_functions import *
 from scapy.all import *
 from time import time
-from math import sqrt
-
 
 ICMP_DATA = "michail dot xirouchakis at gmail dot com " * 34
 TEST_DURATION_SEC = 300
+CURVE_TYPES = {'constant': constant, 'linear': linear, 'quadratic': quadratic, 'sine': sine,
+               'noise': deterministic_noise}
 
 
 def create_icmp_pkt(src_ip, dst_ip, data=ICMP_DATA, timestamp=time()):
@@ -20,14 +21,14 @@ def create_icmp_pkt(src_ip, dst_ip, data=ICMP_DATA, timestamp=time()):
     return packet
 
 
-def create_pkts(src_ip, dst_ip, max_pps, curve_type="constant"):
+def create_pkts(src_ip, dst_ip, max_pps, curve_type='constant'):
     """
-    Returns a list of packets (ICMP Echo Requests). User must define the curve type (e.g., constant, linear, quadratic,
-    bursts) and the maximum throughput (pps).
+    Returns a list of packets (ICMP Echo Requests).
     """
 
     list_of_packets = []
-    list_of_timestamps = create_timestamps(max_pps, curve_type)
+
+    list_of_timestamps = _create_timestamps(CURVE_TYPES[curve_type], max_pps)
 
     print "Creating ICMP Echo Requests."
     for timestamp in list_of_timestamps:
@@ -37,89 +38,16 @@ def create_pkts(src_ip, dst_ip, max_pps, curve_type="constant"):
     return list_of_packets
 
 
-def create_timestamps(max_pps, curve_type, runtime=TEST_DURATION_SEC):
+def _create_timestamps(curve_function, max_pps, start_time=time(), run_time=TEST_DURATION_SEC):
     """
-    Returns a list of timestamps (float; seconds since epoch).  User must define the curve type (e.g., constant, linear,
-    quadratic, bursts) and the maximum throughput (pps).
+    Returns a list of timestamps (float; seconds since epoch).
     """
-
     # Check input variables
-    if max_pps == 0:
+    if max_pps <= 0:
         print "You set input parameter max_pps to", max_pps, ". This is invalid. Exiting..."
         sys.exit()
-    if curve_type not in ["constant", "bursts", "linear", "quadratic", "sine"]:
-        print "You set input parameter curve_type to", curve_type, ". This is invalid. Exiting..."
-        sys.exit()
 
-    print "Creating timestamps for generated packets. curve_type:", curve_type, ", Maximum throughput (pps):", max_pps
-    start_time = time()
-    list_of_timestamps = []
-
-    if curve_type == "constant":
-        interpacket_gap = 1.0 / max_pps
-
-        for timestamp in range(0, runtime*max_pps):
-            list_of_timestamps.append(start_time + (interpacket_gap*timestamp))
-
-    elif curve_type == "bursts":
-        interpacket_gap = 1.0 / max_pps
-
-        # Don't send a single packet every other second.
-        send_flag = False
-        for timestamp in range(0, runtime*max_pps):
-
-            if timestamp % max_pps == 0:
-                # Flip the send_flag after each second.
-                send_flag = not send_flag
-
-            if send_flag:
-                list_of_timestamps.append(start_time + (interpacket_gap*timestamp))
-
-    elif curve_type == "linear":
-        packets = range(1, max_pps+1)  # List will first element 1 and last element equal to max_pps
-
-        for k, v in enumerate(packets):
-
-            if v == 0:
-                continue
-            else:
-                interpacket_gap = 1.0 / v
-
-            for timestamp in range(0, v):  # Will not execute for timestamp equal to v
-                list_of_timestamps.append(start_time + k + (interpacket_gap * timestamp))
-
-    elif curve_type == "quadratic":
-        # List will first element 1 and last element equal to max_pps
-        packets = [i ** 2 for i in range(1, int(sqrt(max_pps))+1)]
-
-        for k, v in enumerate(packets):
-
-            if v == 0:
-                continue
-            else:
-                interpacket_gap = 1.0 / v
-
-            for timestamp in range(0, v):  # Will not execute for timestamp equal to v
-                list_of_timestamps.append(start_time + k + (interpacket_gap * timestamp))
-
-    elif curve_type == "sine":
-        #packets = [int(ceil((sin(radians(i)) + 1) * 50)) for i in [0, 45, 90, 135, 180, 225, 270, 315]]
-        packets_one_period = [50, 86, 100, 86, 50, 15, 0, 15]
-
-        periods = runtime / len(packets_one_period)  # integer, so flooring float
-        packets = packets_one_period * periods
-
-        for k, v in enumerate(packets):
-
-            if v == 0:
-                continue
-            else:
-                interpacket_gap = 1.0 / v
-
-            for timestamp in range(0, v):  # Will not execute for timestamp equal to v
-                list_of_timestamps.append(start_time + k + (interpacket_gap * timestamp))
-
-    return list_of_timestamps
+    return curve_function(max_pps, start_time, run_time)
 
 
 def export_trace(packets_list, filename="trace_"+str(int(time()))+".pcap"):
@@ -145,5 +73,9 @@ if __name__ == "__main__":
     print "* Destination IP:", user_input['dst_ip']
     print "* Maximum Throughput (pps):", user_input['max_pps']
     print "* Curve:", user_input['curve_type']
+
+    if user_input['curve_type'] not in CURVE_TYPES.keys():
+        print "Only supporting curves", CURVE_TYPES.keys(), ". Exiting..."
+        sys.exit()
 
     export_trace(create_pkts(**user_input), "trace_"+str(user_input['curve_type'])+"_"+str(int(time()))+".pcap")
