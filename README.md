@@ -1,11 +1,9 @@
-# synthetic_trace
-
 Synthetic trace
 =========
-The aim of this project is to create a custom trace, i.e., a .pcap file, according to user input.
+Create a custom trace, i.e., a __.pcap__ file, according to user input.
 The user provides information such as the Source and Destination IPs, the type of traffic (e.g., ICMP Echo Request) as
 well as the packet rate.
-Regarding the packet rate, the user can define the actual traffic load curve (pps), e.g. a decaying sine curve.
+Regarding the packet rate, the user can define the actual traffic load curve (pps), e.g., a decaying sine curve.
 
 Dependencies
 ----
@@ -19,7 +17,7 @@ Run
 ----
 + First compose a configuration file in JSON format. I have provided an example file,
 [test-conf.json][conf_example_github]
-+ Then run python script create_custom_trace.py with input arguments:
++ Then run python file [create_custom_trace.py][create_custom_trace_github] with input arguments:
 ```python
 ./create_custom_trace.py <SOURCE_IP> <DESTINATION_IP> <PATH_TO_CONFIG_FILE> 
 ```
@@ -49,5 +47,6 @@ Please raise an issue on Github.
 [scapy_github]: https://github.com/secdev/scapy
 [numpy_installation_homepage]: https://www.scipy.org/install.html
 [conf_example_github]: https://github.com/michailx/synthetic_trace/blob/master/conf/test-conf.json
+[create_custom_trace_github]: https://github.com/michailx/synthetic_trace/blob/master/create_custom_trace.py
 [curve_functions_github]: https://github.com/michailx/synthetic_trace/blob/master/curve_functions.py
 [create_packets_github]: https://github.com/michailx/synthetic_trace/blob/master/create_packets.py
