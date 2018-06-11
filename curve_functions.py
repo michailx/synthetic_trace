@@ -6,9 +6,6 @@ from math import radians
 from random import randint
 from random import seed
 
-SEED_VALUE = 1337  # The value itself is not significant. What is significant is that it's the same for
-# all calls of function deterministic_noise()
-
 
 def constant(max_pps, run_time_sec):
     # All seconds of the test will have pps = max_pps, so:
@@ -40,12 +37,16 @@ def sine(max_pps, run_time_sec):
     return pps
 
 
-def deterministic_noise(max_pps, run_time_sec):
-    seed(SEED_VALUE)  # Running deterministic_noise() w/out changing the SEED_VALUE will always produce the same result
+def deterministic_noise(max_pps, run_time_sec, seed_value):
+    seed(seed_value)  # Running deterministic_noise() w/out changing the seed_value will always produce the same result
 
     # The last second of the test must have pps == max_pps, so:
     pps = [randint(0, max_pps) for _ in range(1, run_time_sec + 1)]
     return pps
+
+
+CURVE_FUNCTIONS = {'constant': constant, 'linear': linear, 'quadratic': quadratic, 'sine': sine,
+                   'noise': deterministic_noise}
 
 
 if __name__ == "__main__":

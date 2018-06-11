@@ -1,0 +1,30 @@
+{
+	"packet_type": "icmp",
+	"composition_mode": "multiplicative",
+	"curve_components": [{
+			"curve_type": "sine",
+			"start_time": 30,
+			"end_time": 300,
+			"params": {
+				"max_pps": 20
+			}
+		},
+		{
+			"curve_type": "noise",
+			"start_time": 0,
+			"end_time": 300,
+			"params": {
+				"max_pps": 5,
+				"seed_value": 1337
+			}
+		},
+		{
+			"curve_type": "linear",
+			"start_time": 60,
+			"end_time": 250,
+			"params": {
+				"max_pps": 20
+			}
+		}
+	]
+}
